@@ -3,6 +3,7 @@
 
 #include <array>
 #include <fstream>
+#include <limits>
 #include <optional>
 #include <set>
 #include <vector>
@@ -82,18 +83,20 @@ struct Vertex {
     glm::vec2 pos;
     glm::vec3 color;
 
+    // 描述绑定信息
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
+        bindingDescription.binding = 0;    // 该 binding 类似 id, 该 id 从零开始.  binding  must be less than VkPhysicalDeviceLimits::maxVertexInputBinding
         bindingDescription.stride = sizeof(Vertex);
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
         return bindingDescription;
     }
 
+    // 描述各个结构体各个属性 对应得内存信息
     static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
         std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
         attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].location = 0;      // shader 对应的location
         attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[0].offset = offsetof(Vertex, pos);
 
@@ -184,7 +187,7 @@ private:
 
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
-        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             stagingBuffer, stagingBufferMemory);
 
@@ -248,6 +251,18 @@ private:
     }
 
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+        // VkFence 等待拷贝命令
+        VkFenceCreateInfo fenceInfo;
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceInfo.pNext = nullptr;
+        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        VkFence fence = VK_NULL_HANDLE;
+        if (VK_SUCCESS != vkCreateFence(m_vk_device, &fenceInfo, nullptr, &fence)) {
+            throw std::runtime_error("create temporary fence failed!");
+        }
+        // 清空 fence 状态
+        vkResetFences(m_vk_device, 1, &fence);
+
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -274,9 +289,13 @@ private:
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
         
-        vkQueueSubmit(m_vk_graphics_queue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(m_vk_graphics_queue);
+        // 使用 fence 等待
+        vkQueueSubmit(m_vk_graphics_queue, 1, &submitInfo, fence);
+        //vkQueueWaitIdle(m_vk_graphics_queue);
+        vkWaitForFences(m_vk_device, 1, &fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
 
+        // 销毁 fence
+        vkDestroyFence(m_vk_device, fence, nullptr);
         vkFreeCommandBuffers(m_vk_device, m_vk_command_pool, 1, &commandBuffer);
     }
 
@@ -318,6 +337,10 @@ private:
 
     void cleanup() {
         cleanupSwapChain();
+
+        vkDestroyBuffer(m_vk_device, m_vk_vertexbuffer, nullptr);
+        vkFreeMemory(m_vk_device, m_vk_vertexbuffer_memory, nullptr);
+
         vkDestroyPipeline(m_vk_device, m_vk_graphics_pipeline, nullptr);
         vkDestroyPipelineLayout(m_vk_device, m_vk_pipeline_layout, nullptr);
         vkDestroyRenderPass(m_vk_device, m_vk_renderpass, nullptr);
