@@ -36,6 +36,8 @@ bool GpuResource::Init(SDL_Window* parent_window)
     CHECK_OR_RETURN_FALSE(_CreateInstatce());
     CHECK_OR_RETURN_FALSE(_CreateSurface());
 	CHECK_OR_RETURN_FALSE(_PickPhysicalDevice());
+    // 查看是否支持交换链
+    CHECK_OR_RETURN_FALSE(_CheckDeviceExtensionSupport(vk_physicaldevice_, VK_KHR_SWAPCHAIN_EXTENSION_NAME));
     CHECK_OR_RETURN_FALSE(_CreateLogicDevice());
 
 	return true;
@@ -210,13 +212,15 @@ bool GpuResource::_CreateLogicDevice()
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
+    const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
     VkPhysicalDeviceFeatures deviceFeature{};
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pEnabledFeatures = &deviceFeature;
-    createInfo.enabledExtensionCount = 0;
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
     // 验证层
     createInfo.enabledLayerCount = 0;
@@ -251,4 +255,85 @@ bool GpuResource::_CreateSurface()
 #else
     return false;
 #endif
+}
+
+bool GpuResource::_CheckDeviceExtensionSupport(VkPhysicalDevice device, std::string extension_name)
+{
+    uint32_t extensionCount;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+    for (const auto& extension : availableExtensions) 
+    {
+        if (extension.extensionName == extension_name)
+        {
+            return true;
+        }
+    }
+
+    return false;;
+}
+
+SwapChainSupportDetails GpuResource::_QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
+{
+    SwapChainSupportDetails details;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+
+    uint32_t formatCount;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+    if (formatCount != 0) 
+    {
+        details.formats.resize(formatCount);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+    }
+
+    uint32_t presentModeCount;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+    if (presentModeCount != 0) 
+    {
+        details.presentModes.resize(presentModeCount);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+    }
+
+    return details;
+}
+
+std::optional<VkSurfaceFormatKHR> GpuResource::_ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+{
+    std::optional<VkSurfaceFormatKHR> result;
+
+    for (const auto& availableFormat : availableFormats)
+    {
+        if (availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR && availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB)
+        {
+            result = availableFormat;
+            break;
+        }
+    }
+
+    return result;
+}
+
+std::optional<VkPresentModeKHR> GpuResource::_ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+{
+    std::optional<VkPresentModeKHR> result;
+
+    for (const auto& availablePresentMode : availablePresentModes)
+    {
+        // 呈现策略
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+            result = availablePresentMode;
+        }
+    }
+
+    return result;
+}
+
+VkExtent2D GpuResource::_ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
+{
+    VkExtent2D result;
+
+    return result;
 }

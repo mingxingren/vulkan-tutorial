@@ -4,7 +4,15 @@
 #include <vulkan/vulkan.hpp>
 #include <SDL2/SDL_video.h>
 
-struct QueueFamilyIndices {
+struct SwapChainSupportDetails
+{
+	VkSurfaceCapabilitiesKHR capabilities;
+	std::vector<VkSurfaceFormatKHR> formats;
+	std::vector<VkPresentModeKHR> presentModes;
+};
+
+struct QueueFamilyIndices 
+{
 	std::optional<uint32_t> graphicsFamily;
 	std::optional<uint32_t> presentFamily;
 
@@ -13,7 +21,6 @@ struct QueueFamilyIndices {
 		return graphicsFamily.has_value() && presentFamily.has_value();
 	}
 };
-
 
 class GpuResource final
 {
@@ -31,7 +38,11 @@ private:
 	QueueFamilyIndices _findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
 	bool _CreateLogicDevice();
 	bool _CreateSurface();
-
+	bool _CheckDeviceExtensionSupport(VkPhysicalDevice device, std::string extension_name);
+	SwapChainSupportDetails _QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
+	std::optional<VkSurfaceFormatKHR> _ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	std::optional<VkPresentModeKHR> _ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+	VkExtent2D _ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 public:
 	SDL_Window* parent_window_ = nullptr;
 	VkInstance vk_instance_ = VK_NULL_HANDLE;	///< vulkanÊµÀý
