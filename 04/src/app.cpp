@@ -2,7 +2,7 @@
 
 #include <fmt/format.h>
 
-#include "gpu_device.h"
+#include "gpu_program.h"
 
 Application::~Application()
 {
@@ -45,7 +45,7 @@ int32_t Application::Exec()
 
     window_ = tmp_window;
 
-    if (!GpuDevice::GetInstance()->Init(window_))
+    if (!GpuProgram::GetInstance()->Init(window_))
     {
         return false;
     }

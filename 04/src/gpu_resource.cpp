@@ -80,12 +80,19 @@ bool GpuResource::Init(SDL_Window* parent_window)
     CHECK_OR_RETURN_FALSE(_CheckDeviceExtensionSupport(vk_physicaldevice_, VK_KHR_SWAPCHAIN_EXTENSION_NAME));
     CHECK_OR_RETURN_FALSE(_CreateLogicDevice());
     CHECK_OR_RETURN_FALSE(_CreateSwapChain());
+    CHECK_OR_RETURN_FALSE(_CreateImageViews());
 
 	return true;
 }
 
 void GpuResource::UnInit()
 {
+    for (auto& index : vk_swapchain_image_views)
+    {
+        vkDestroyImageView(vk_device_, index, nullptr);
+    }
+    vk_swapchain_image_views.clear();
+
     if (vk_swap_chain_ != VK_NULL_HANDLE)
     {
         vkDestroySwapchainKHR(vk_device_, vk_swap_chain_, nullptr);
@@ -570,4 +577,34 @@ VkExtent2D GpuResource::_ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabi
     }
 
     return result;
+}
+
+bool GpuResource::_CreateImageViews()
+{
+    vk_swapchain_image_views.resize(vk_swapchain_images_.size());
+    for (size_t i = 0; i < vk_swapchain_images_.size(); i++)
+    {
+        VkImageViewCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        createInfo.image = vk_swapchain_images_[i];
+        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        createInfo.format = vk_swapchain_image_format;
+        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        createInfo.subresourceRange.baseMipLevel = 0;
+        createInfo.subresourceRange.levelCount = 1;
+        createInfo.subresourceRange.baseArrayLayer = 0;
+        createInfo.subresourceRange.layerCount = 1;
+
+        VkResult result = vkCreateImageView(vk_device_, &createInfo, nullptr, &vk_swapchain_image_views[i]);
+        if (result != VK_SUCCESS)
+        {
+            fmt::print("create image view fail!\n");
+        }
+    }
+
+    return true;
 }

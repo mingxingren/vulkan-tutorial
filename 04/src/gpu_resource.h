@@ -56,6 +56,8 @@ private:
 	std::optional<VkPresentModeKHR> _ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 	VkExtent2D _ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
+	bool _CreateImageViews();
+
 private:
 	SDL_Window* parent_window_ = nullptr;
 	bool is_debug_ = true;
@@ -74,4 +76,6 @@ public:
 	std::vector<VkImage> vk_swapchain_images_;	///< 交换链的后备缓冲
 	VkFormat vk_swapchain_image_format = VK_FORMAT_UNDEFINED;	///< 交换链后备缓冲格式
 	VkExtent2D vk_swapchain_image_extent = { 0, 0 };	///< 交换链后备缓冲宽高
+
+	std::vector<VkImageView> vk_swapchain_image_views;
 };
