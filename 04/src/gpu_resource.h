@@ -78,4 +78,7 @@ public:
 	VkExtent2D vk_swapchain_image_extent = { 0, 0 };	///< 交换链后备缓冲宽高
 
 	std::vector<VkImageView> vk_swapchain_image_views;
+
+	int32_t vk_graphics_family_ = -1;
+	int32_t vk_present_family_ = -1;
 };

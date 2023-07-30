@@ -370,6 +370,10 @@ bool GpuResource::_CreateLogicDevice()
 
     vkGetDeviceQueue(vk_device_, indices.graphicsFamily.value(), 0, &vk_graphics_queue_);
     vkGetDeviceQueue(vk_device_, indices.presentFamily.value(), 0, &vk_present_queue_);
+    
+    vk_graphics_family_ = indices.graphicsFamily.value();
+    vk_present_family_ = indices.presentFamily.value();
+    
     return true;
 }
 

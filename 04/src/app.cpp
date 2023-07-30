@@ -63,8 +63,12 @@ int32_t Application::Exec()
         }
         else{
             SDL_Delay(2);
-        }   
+        }
+
+        GpuProgram::GetInstance()->DrawFrame();
     }
+
+    GpuProgram::GetInstance()->Uninit();
 
     return 0;
 }
