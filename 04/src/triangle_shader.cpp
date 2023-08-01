@@ -83,7 +83,7 @@ void TriangleShader::_DestroyShaderModule(VkShaderModule shader)
 bool TriangleShader::_CreatePipeline(VkShaderModule vertex_shader, VkShaderModule pixel_shader, 
 									const VkExtent2D& image_exent)
 {
-	// ´´½¨×ÅÉ«Æ÷
+	// åˆ›å»ºç€è‰²å™¨
 	VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 	vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -100,7 +100,7 @@ bool TriangleShader::_CreatePipeline(VkShaderModule vertex_shader, VkShaderModul
 	shaderStages.push_back(vertShaderStageInfo);
 	shaderStages.push_back(fragShaderStageInfo);
 
-	// ´´½¨¶¥µãÊäÈëÃèÊö
+	// åˆ›å»ºé¡¶ç‚¹è¾“å…¥æè¿°
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vertexInputInfo.vertexAttributeDescriptionCount = 0;
@@ -108,13 +108,13 @@ bool TriangleShader::_CreatePipeline(VkShaderModule vertex_shader, VkShaderModul
 	vertexInputInfo.vertexBindingDescriptionCount = 0;
 	vertexInputInfo.pVertexBindingDescriptions = nullptr;
 
-	// ´´½¨Í¼ÔªÃèÊö
+	// åˆ›å»ºå›¾å…ƒæè¿°
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-	// ÊÓ¿Ú
+	// è§†å£
 	VkViewport viewport{};
 	viewport.height = static_cast<float>(image_exent.height);
 	viewport.width = static_cast<float>(image_exent.width);
@@ -123,17 +123,17 @@ bool TriangleShader::_CreatePipeline(VkShaderModule vertex_shader, VkShaderModul
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
-	// ²Ã¼ôÇøÓò
+	// è£å‰ªåŒºåŸŸ
 	VkRect2D scissor{};
 	scissor.offset = { 0, 0 };
 	scissor.extent = image_exent;
 
-	// ´´½¨¿É±äµÄ¹ÜÏß×´Ì¬
+	// åˆ›å»ºå¯å˜çš„ç®¡çº¿çŠ¶æ€
 	std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 	VkPipelineDynamicStateCreateInfo dynamicState{};
 	dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicState.pDynamicStates = dynamicStates.data();
 	dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+	dynamicState.pDynamicStates = dynamicStates.data();
 
 	VkPipelineViewportStateCreateInfo viewportState{};
 	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -142,35 +142,35 @@ bool TriangleShader::_CreatePipeline(VkShaderModule vertex_shader, VkShaderModul
 	viewportState.scissorCount = 1;
 	viewportState.pScissors = &scissor;
 
-	//´´½¨¹âÕ¤»¯
+	//åˆ›å»ºå…‰æ …åŒ–
 	VkPipelineRasterizationStateCreateInfo rasterizer{};
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizer.depthClampEnable = VK_FALSE;
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
 	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizer.lineWidth = 1.0f;
-	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT; // ¿ªÆô±³ÃæÌá³öÄ£Ê½
-	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;	// Ë³Ê±Õë
+	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT; // å¼€å¯èƒŒé¢æå‡ºæ¨¡å¼
+	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;	// é¡ºæ—¶é’ˆ
 	rasterizer.depthBiasEnable = VK_FALSE;
 	rasterizer.depthBiasConstantFactor = 0.0f;
 	rasterizer.depthBiasClamp = 0.0f;
 	rasterizer.depthBiasSlopeFactor = 0.0f;
 
-	// ¶àÖØ²ÉÑù
+	// å¤šé‡é‡‡æ ·
 	VkPipelineMultisampleStateCreateInfo multisampling{};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampling.sampleShadingEnable = VK_FALSE;
 	multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-	multisampling.minSampleShading = 1.0f;
-	multisampling.pSampleMask = nullptr;
-	multisampling.alphaToCoverageEnable = VK_FALSE;
-	multisampling.alphaToOneEnable = VK_FALSE;
+	//multisampling.minSampleShading = 1.0f;
+	//multisampling.pSampleMask = nullptr;
+	//multisampling.alphaToCoverageEnable = VK_FALSE;
+	//multisampling.alphaToOneEnable = VK_FALSE;
 
-	// Éî¶È²âÊÔ ºÍ Ä£°å²âÊÔ
+	// æ·±åº¦æµ‹è¯• å’Œ æ¨¡æ¿æµ‹è¯•
 
-	// »ìºÏ
+	// æ··åˆ
 	VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-	colorBlendAttachment.blendEnable = VK_FALSE; // ½ûÓÃÑÕÉ«»ìºÏ
+	colorBlendAttachment.blendEnable = VK_FALSE; // ç¦ç”¨é¢œè‰²æ··åˆ
 	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
 		| VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	//colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ZERO;
@@ -191,7 +191,7 @@ bool TriangleShader::_CreatePipeline(VkShaderModule vertex_shader, VkShaderModul
 	colorBlending.blendConstants[2] = 0.0f;
 	colorBlending.blendConstants[3] = 0.0f;
 
-	// ´´½¨¿ÕµÄuniform
+	// åˆ›å»ºç©ºçš„uniform
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 0;
@@ -205,15 +205,17 @@ bool TriangleShader::_CreatePipeline(VkShaderModule vertex_shader, VkShaderModul
 		return false;
 	}
 
-	// ´´½¨Í¼ĞÎ¹ÜÏß
+	// åˆ›å»ºå›¾å½¢ç®¡çº¿
 	VkGraphicsPipelineCreateInfo pipelineInfo;
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipelineInfo.pNext = nullptr;
+	pipelineInfo.flags = 0;
 	pipelineInfo.stageCount = 2;
 	pipelineInfo.pStages = shaderStages.data();
 	pipelineInfo.pVertexInputState = &vertexInputInfo;
 	pipelineInfo.pInputAssemblyState = &inputAssembly;
 	pipelineInfo.pViewportState = &viewportState;
+	pipelineInfo.pRasterizationState = &rasterizer;
 	pipelineInfo.pMultisampleState = &multisampling;
 	pipelineInfo.pDepthStencilState = nullptr;
 	pipelineInfo.pColorBlendState = &colorBlending;
@@ -241,6 +243,8 @@ bool TriangleShader::_CreateRenderPass()
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 

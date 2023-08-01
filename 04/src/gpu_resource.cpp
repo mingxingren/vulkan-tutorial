@@ -312,9 +312,13 @@ QueueFamilyIndices GpuResource::_FindQueueFamilies(VkPhysicalDevice device, VkSu
         VkBool32 persentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &persentSupport);
 
-        if (persentSupport != false)
+        if (persentSupport)
         {
             indices.presentFamily = i;
+        }
+
+        if (indices.isComplete()) {
+            break;
         }
         
         i++;
@@ -348,8 +352,8 @@ bool GpuResource::_CreateLogicDevice()
     VkPhysicalDeviceFeatures deviceFeature{};
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
     // 开启设备扩展
     createInfo.pEnabledFeatures = &deviceFeature;
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
@@ -379,26 +383,12 @@ bool GpuResource::_CreateLogicDevice()
 
 bool GpuResource::_CreateSurface()
 {
-#ifdef _WIN32
-    SDL_SysWMinfo system_info;
-    SDL_VERSION(&system_info.version);
-    if (SDL_GetWindowWMInfo(parent_window_, &system_info) == 0)
+    if (SDL_TRUE != SDL_Vulkan_CreateSurface(parent_window_, vk_instance_, &vk_surface_))
     {
-        fmt::print("SDL_Window cant get hwnd\n");
+        fmt::print("SDL_Vulkan_CreateSurface generate VkSurfaceKHR fail!\n");
         return false;
     }
-    HWND tmp_hwnd = system_info.info.win.window;
-    VkWin32SurfaceCreateInfoKHR createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    createInfo.hwnd = tmp_hwnd;
-    createInfo.hinstance = GetModuleHandle(nullptr);
-
-    VkResult ret = vkCreateWin32SurfaceKHR(vk_instance_, &createInfo, nullptr, &vk_surface_);
-    IF_VK_RETURN_FAIL(ret, vkCreateWin32SurfaceKHR, false)
     return true;
-#else
-    return false;
-#endif
 }
 
 bool GpuResource::_CheckDeviceExtensionSupport(VkPhysicalDevice device, const std::string& extension_name)
@@ -521,7 +511,6 @@ SwapChainSupportDetails GpuResource::_QuerySwapChainSupport(VkPhysicalDevice dev
 std::optional<VkSurfaceFormatKHR> GpuResource::_ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
     std::optional<VkSurfaceFormatKHR> result;
-
     for (const auto& availableFormat : availableFormats)
     {
         if (availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR && availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB)
@@ -537,7 +526,6 @@ std::optional<VkSurfaceFormatKHR> GpuResource::_ChooseSwapSurfaceFormat(const st
 std::optional<VkPresentModeKHR> GpuResource::_ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
     std::optional<VkPresentModeKHR> result;
-
     std::set<VkPresentModeKHR> present_mode(availablePresentModes.begin(), availablePresentModes.end());
 
     // 呈现策略
@@ -571,10 +559,9 @@ VkExtent2D GpuResource::_ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabi
     else {
         int32_t width = 0;
         int32_t height = 0;
-        SDL_Vulkan_GetDrawableSize(parent_window_, 
+        SDL_Vulkan_GetDrawableSize(parent_window_,
                                 reinterpret_cast<int32_t*>(&result.width), 
                                 reinterpret_cast<int32_t*>(&result.height));
-
 
         result.width = std::clamp(result.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
         result.height = std::clamp(result.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);

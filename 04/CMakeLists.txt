@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 FILE(GLOB_RECURSE SRC_CPP src/*.cpp)
 
-add_executable(vulkan_app ${SRC_CPP} "src/gpu_resource.cpp")
+add_executable(vulkan_app ${SRC_CPP})
 
 # 链接 vulkan 文件
 target_include_directories(vulkan_app PRIVATE $ENV{VULKAN_ROOT}/Include)

@@ -56,6 +56,8 @@ bool GpuProgram::Init(SDL_Window* parent_window)
 
 void GpuProgram::Uninit()
 {
+    vkDeviceWaitIdle(vk_resource_->vk_device_);
+
     if (vk_imageavailable_semaphore_ != VK_NULL_HANDLE)
     {
         vkDestroySemaphore(vk_resource_->vk_device_, vk_imageavailable_semaphore_, nullptr);
@@ -97,7 +99,7 @@ void GpuProgram::Uninit()
 
 void GpuProgram::DrawFrame()
 {
-    // µÈ´ýÐÂÖ¡
+    // ç­‰å¾…æ–°å¸§
     vkWaitForFences(vk_resource_->vk_device_, 1, &vk_inflight_fence_, VK_TRUE, UINT64_MAX);
     vkResetFences(vk_resource_->vk_device_, 1, &vk_inflight_fence_);
 
@@ -228,8 +230,6 @@ void GpuProgram::_RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t im
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = 0;
-    beginInfo.pInheritanceInfo = nullptr;
 
     VkResult ret = vkBeginCommandBuffer(commandBuffer, &beginInfo);
     if (ret != VK_SUCCESS)
@@ -250,25 +250,23 @@ void GpuProgram::_RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t im
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    {
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_shader_->vk_graphics_pipeline_);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_shader_->vk_graphics_pipeline_);
 
-        VkViewport viewport{};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = static_cast<float>(vk_resource_->vk_swapchain_image_extent.width);
-        viewport.height = static_cast<float>(vk_resource_->vk_swapchain_image_extent.height);
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = static_cast<float>(vk_resource_->vk_swapchain_image_extent.width);
+    viewport.height = static_cast<float>(vk_resource_->vk_swapchain_image_extent.height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-        VkRect2D scissor{};
-        scissor.offset = { 0, 0 };
-        scissor.extent = vk_resource_->vk_swapchain_image_extent;
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+    VkRect2D scissor{};
+    scissor.offset = { 0, 0 };
+    scissor.extent = vk_resource_->vk_swapchain_image_extent;
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
-    }
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
 

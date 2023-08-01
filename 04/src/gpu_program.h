@@ -31,7 +31,7 @@ private:
     VkCommandPool vk_commandpool_ = VK_NULL_HANDLE;
     VkCommandBuffer vk_commandbuffer_ = VK_NULL_HANDLE;
 
-    // ¥¥Ω®–≈∫≈¡ø
+    // ÂàõÂª∫‰ø°Âè∑Èáè
     VkSemaphore vk_imageavailable_semaphore_ = VK_NULL_HANDLE;
     VkSemaphore vk_renderfinshed_semaphore_ = VK_NULL_HANDLE;
     VkFence vk_inflight_fence_ = VK_NULL_HANDLE;
